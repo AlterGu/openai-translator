@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Button } from 'react-daisyui';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -8,11 +8,14 @@ import { MdContentCopy } from 'react-icons/md';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { useGlobalStore } from '@/components/GlobalStore';
+import { SpeechRecognitionButton } from '@/components/SpeechRecognitionButton';
+import { TTSButton } from '@/components/TTSButton';
 import { Language, LANGUAGES } from '@/constants';
 import { getTranslatePrompt } from '@/utils/prompt';
 
 function TranslatorPage() {
   const { t, i18n } = useTranslation();
+  const translateTextAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     configValues: { openaiApiKey, currentModel, tempretureParam },
@@ -58,6 +61,18 @@ function TranslatorPage() {
         toLang: prev.fromLang,
       })),
     [setLastTranslateData],
+  );
+
+  const onChangeTranscript = useCallback(
+    (newTranscript: string) => {
+      if (!translateTextAreaRef.current || !newTranscript) {
+        return;
+      }
+      translateTextAreaRef.current.value = newTranscript;
+      translateTextAreaRef.current.defaultValue = newTranscript;
+      setTranslateText(newTranscript);
+    },
+    [setTranslateText],
   );
 
   const handleTranslate = useCallback(
@@ -160,13 +175,31 @@ function TranslatorPage() {
           </div>
 
           <div className="form-control">
-            <TextareaAutosize
-              name="translateText"
-              defaultValue={translateText}
-              className="w-full mb-2 break-all resize-none rounded-2xl textarea textarea-md textarea-primary md:min-h-[120px]"
-              placeholder={t('Please enter the text you want to translate here.')}
-              required
-            ></TextareaAutosize>
+            <div className="relative">
+              <TextareaAutosize
+                ref={translateTextAreaRef}
+                name="translateText"
+                defaultValue={translateText}
+                className="w-full mb-2 break-all resize-none rounded-2xl textarea textarea-md textarea-primary md:min-h-[120px] pb-10"
+                placeholder={t('Please enter the text you want to translate here.')}
+                onChange={(e) => setTranslateText(e.target.value)}
+                disabled={isTranslating}
+                required
+              ></TextareaAutosize>
+              <div className="absolute flex flex-row justify-start bottom-5 left-0 w-full px-2 gap-2">
+                <SpeechRecognitionButton
+                  language={lastTranslateData.fromLang === 'auto' ? i18n.language : lastTranslateData.fromLang}
+                  onChangeTranscript={onChangeTranscript}
+                  disabled={isTranslating}
+                />
+                {!!translateText && (
+                  <TTSButton
+                    language={lastTranslateData.fromLang === 'auto' ? i18n.language : lastTranslateData.fromLang}
+                    text={translateText}
+                  />
+                )}
+              </div>
+            </div>
             <Button
               type="submit"
               color="primary"
@@ -194,25 +227,32 @@ function TranslatorPage() {
               value={translatedText || ''}
               className={clsx(
                 'w-full mb-2 break-all resize-none rounded-2xl textarea textarea-md textarea-ghost md:min-h-[120px]',
-                !!translatedText && !isTranslating && 'pb-9',
+                !!translatedText && !isTranslating && 'pb-10',
               )}
               placeholder={isTranslating ? t('Please wait...') : t('Translated text will appear here.')}
               readOnly
               required
             ></TextareaAutosize>
-            {!!translatedText && !isTranslating && (
-              <Button
-                type="button"
-                shape="circle"
-                color="ghost"
-                className="absolute left-2 bottom-4"
-                size="sm"
-                title={t('Copy translated text')}
-                onClick={onCopyBtnClick}
-              >
-                <MdContentCopy size="16" />
-              </Button>
-            )}
+            <div className="absolute flex flex-row justify-between left-0 bottom-5 w-full px-2">
+              {!!translatedText && (
+                <TTSButton
+                  language={lastTranslateData.toLang === 'auto' ? i18n.language : lastTranslateData.toLang}
+                  text={translatedText || ''}
+                />
+              )}
+              {!!translatedText && !isTranslating && (
+                <Button
+                  type="button"
+                  shape="circle"
+                  color="ghost"
+                  size="sm"
+                  title={t('Copy translated text')}
+                  onClick={onCopyBtnClick}
+                >
+                  <MdContentCopy size="16" />
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
