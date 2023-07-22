@@ -4,7 +4,7 @@ import { Button } from 'react-daisyui';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { CgArrowsExchange } from 'react-icons/cg';
-import { MdContentCopy } from 'react-icons/md';
+import { MdClose, MdContentCopy } from 'react-icons/md';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import { useGlobalStore } from '@/components/GlobalStore';
@@ -130,6 +130,14 @@ function TranslatorPage() {
       tempretureParam,
     ],
   );
+
+  const onClearBtnClick = useCallback(() => {
+    if (!translateTextAreaRef.current) {
+      return;
+    }
+    translateTextAreaRef.current.value = '';
+  }, []);
+
   // ↑ Hooks before, keep hooks order
 
   return (
@@ -180,23 +188,37 @@ function TranslatorPage() {
                 ref={translateTextAreaRef}
                 name="translateText"
                 defaultValue={translateText}
-                className="w-full mb-2 break-all resize-none rounded-2xl textarea textarea-md textarea-primary md:min-h-[120px] pb-10"
+                className="w-full mb-2 whitespace-pre-line break-words resize-none rounded-2xl textarea textarea-md textarea-primary md:min-h-[120px] pb-10"
                 placeholder={t('Please enter the text you want to translate here.')}
                 onChange={(e) => setTranslateText(e.target.value)}
                 disabled={isTranslating}
                 required
               ></TextareaAutosize>
-              <div className="absolute flex flex-row justify-start bottom-5 left-0 w-full px-2 gap-2">
-                <SpeechRecognitionButton
-                  language={lastTranslateData.fromLang === 'auto' ? i18n.language : lastTranslateData.fromLang}
-                  onChangeTranscript={onChangeTranscript}
-                  disabled={isTranslating}
-                />
-                {!!translateText && (
-                  <TTSButton
+              <div className="absolute flex flex-row justify-between left-0 bottom-5 w-full px-2">
+                <div className="flex flex-row justify-start gap-2">
+                  <SpeechRecognitionButton
                     language={lastTranslateData.fromLang === 'auto' ? i18n.language : lastTranslateData.fromLang}
-                    text={translateText}
+                    onChangeTranscript={onChangeTranscript}
+                    disabled={isTranslating}
                   />
+                  {!!translateText && (
+                    <TTSButton
+                      language={lastTranslateData.fromLang === 'auto' ? i18n.language : lastTranslateData.fromLang}
+                      text={translateText}
+                    />
+                  )}
+                </div>
+                {!!translateText && (
+                  <Button
+                    type="button"
+                    shape="circle"
+                    color="ghost"
+                    size="sm"
+                    title="Clear the input"
+                    onClick={onClearBtnClick}
+                  >
+                    <MdClose size="16" />
+                  </Button>
                 )}
               </div>
             </div>
@@ -226,7 +248,7 @@ function TranslatorPage() {
               name="translatedText"
               value={translatedText || ''}
               className={clsx(
-                'w-full mb-2 break-all resize-none rounded-2xl textarea textarea-md textarea-ghost md:min-h-[120px]',
+                'w-full mb-2 whitespace-pre-line break-words resize-none rounded-2xl textarea textarea-md textarea-ghost md:min-h-[120px]',
                 !!translatedText && !isTranslating && 'pb-10',
               )}
               placeholder={isTranslating ? t('Please wait...') : t('Translated text will appear here.')}
