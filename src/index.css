@@ -3,26 +3,71 @@
 @tailwind utilities;
 @tailwind variants;
 
-html {
+@layer components {
+  .navbar {
+    @apply z-50 border-b border-b-base-300 backdrop-blur bg-base-100/80;
+  }
+
+  .btn {
+    @apply relative;
+
+    &:before {
+      @apply absolute -left-0.5 -top-0.5 -right-0.5 -bottom-0.5 content-[''] transition-[background] duration-1000 ease-out bg-center rounded-[inherit];
+    }
+
+    &:hover {
+      &:before {
+        @apply bg-[length:15000%] bg-[radial-gradient(circle,_transparent_1%,_#00000020_1%)];
+      }
+    }
+
+    &:active {
+      &:before {
+        @apply duration-0 bg-[length:100%];
+      }
+    }
+  }
+
+  .bottom-nav {
+    @apply border-t border-t-base-300 backdrop-blur bg-base-100/80 fixed inset-x-0 bottom-0 z-50 items-center block h-[calc(48px+env(safe-area-inset-bottom))] rounded-tabs;
+
+    & > * {
+      @apply gap-0 bg-transparent text-xs leading-normal tracking-[.0125em] font-medium;
+
+      &:not(.active) {
+        @apply pt-0;
+      }
+
+      &:where(.active) {
+        @apply font-bold border-t-0 text-primary;
+
+        & > svg {
+          @apply rounded-full bg-primary/5;
+        }
+      }
+
+      & > svg {
+        @apply h-8 w-14 p-1.5;
+      }
+    }
+  }
+}
+
+:root {
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 body {
-  margin: 0;
-  padding: 0;
+  @apply w-full h-full p-0 m-0 mx-auto overscroll-y-none overscroll-x-none;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  overscroll-behavior-y: none;
-  overscroll-behavior-x: none;
-  overflow-y: none;
-  overflow-x: none;
   -webkit-tap-highlight-color: transparent;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans',
-    'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  max-height: calc(100svh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
 @supports (-webkit-touch-callout: none) {
@@ -31,8 +76,4 @@ body {
     height: -webkit-fill-available;
     max-height: -webkit-fill-available;
   }
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }

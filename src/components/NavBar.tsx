@@ -1,9 +1,14 @@
 import clsx from 'clsx';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BsTranslate } from 'react-icons/bs';
+import { FaHistory } from 'react-icons/fa';
 import { Link, matchPath, useLocation } from 'react-router-dom';
 
-import NAV_ITEMS from '@/constants/NavItems';
+const NAV_ITEMS = [
+  { key: 'translator', label: 'Translator', to: '/', icon: <BsTranslate size={24} /> },
+  { key: 'history', label: 'History records', to: '/history', icon: <FaHistory size={24} /> },
+] as const;
 
 function NavBar() {
   const location = useLocation();
@@ -18,10 +23,7 @@ function NavBar() {
   );
 
   return (
-    <section
-      id="bottom-navigation"
-      className="fixed inset-x-0 bottom-0 z-50 items-center block h-[calc(48px+env(safe-area-inset-bottom))] rounded-tabs glass"
-    >
+    <section id="bottom-navigation" className="bottom-nav">
       <ul id="tabs" className="flex justify-around max-w-screen-md p-0 m-0 mx-auto">
         {NAV_ITEMS.map(({ key, label, to, icon }) => (
           <li

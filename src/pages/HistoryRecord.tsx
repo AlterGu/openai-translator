@@ -69,7 +69,7 @@ function HistoryRecord() {
             </label>
             <div
               tabIndex={0}
-              className="w-64 p-2 shadow dropdown-content card card-compact bg-warning text-warning-content"
+              className="z-50 w-64 p-2 shadow dropdown-content card card-compact bg-warning text-warning-content"
             >
               <div className="card-body">
                 <h3 className="card-title">{t('Notice!')}</h3>
@@ -102,7 +102,7 @@ function HistoryRecord() {
                     <span className="font-bold">
                       {LANGUAGES[record.toLanguage as Language] || record.fromLanguage || 'Auto'}
                     </span>
-                    <div className="dropdown dropdown-end">
+                    <div className="dropdown dropdown-end z-[1]">
                       <label tabIndex={0} className="mx-1 btn btn-sm btn-ghost btn-circle">
                         <FaEllipsisV size={8} />
                       </label>
@@ -125,7 +125,7 @@ function HistoryRecord() {
                     {formatTime(record.createdAt, i18n.language || 'en-US')}
                   </time>
                 </div>
-                <div className="chat-bubble whitespace-pre-line break-words">
+                <div className="break-words whitespace-pre-line chat-bubble">
                   {record.text}
                   <TTSButton
                     language={record.fromLanguage === 'auto' ? i18n.language : record.fromLanguage}
@@ -136,7 +136,7 @@ function HistoryRecord() {
                 </div>
               </div>
               <div className="chat chat-start">
-                <div className="chat-bubble chat-bubble-info whitespace-pre-line break-words">
+                <div className="break-words whitespace-pre-line chat-bubble chat-bubble-primary">
                   {record.translation}
                   <TTSButton
                     language={record.toLanguage === 'auto' ? i18n.language : record.toLanguage}

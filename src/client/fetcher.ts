@@ -1,16 +1,15 @@
 import OpenAIClient from '@/client';
-import { GPT_MODELS } from '@/constants';
-import { GPTModel, OpenAIModel } from '@/types';
+import { CHAT_MODELS, type ChatModel, type OpenAIModel } from '@/constants';
 import { trimText } from '@/utils';
 
 export const fetchTranslation = async (params: {
   token: string;
   engine: OpenAIModel;
   prompt: string;
-  tempretureParam: number;
+  temperatureParam: number;
   queryText: string;
 }) => {
-  const { token, engine, prompt, queryText, tempretureParam } = params;
+  const { token, engine, prompt, queryText, temperatureParam } = params;
   if (!token) {
     throw new Error('No API Key found!');
   }
@@ -22,14 +21,14 @@ export const fetchTranslation = async (params: {
     return Math.random() * (max - min) + min;
   };
 
-  const isGptModel = (GPT_MODELS as unknown as string[]).includes(engine);
+  const isChatModel = (CHAT_MODELS as string[]).includes(engine);
 
-  const tmpParam = +tempretureParam > 0.4 && +tempretureParam <= 1.0 ? +tempretureParam : getRadomNumber(0.5, 1.0);
+  const tmpParam = +temperatureParam > 0.4 && +temperatureParam <= 1.0 ? +temperatureParam : getRadomNumber(0.5, 1.0);
 
-  if (isGptModel) {
-    const resp = await OpenAIClient.chatCompletions(token, prompt, queryText, engine as GPTModel, tmpParam);
+  if (isChatModel) {
+    const resp = await OpenAIClient.chatCompletions(token, prompt, queryText, engine as ChatModel, tmpParam);
     const text = resp.data.choices
-      .map((choice) => (choice.message?.content || '').trim())
+      .map((choice) => choice.message?.content.trim() || '')
       .join('\n')
       .trim();
     return trimText(text);

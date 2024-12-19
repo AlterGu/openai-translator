@@ -1,56 +1,22 @@
 import { fetchEventSource, FetchEventSourceInit } from '@microsoft/fetch-event-source';
-import axios, { AxiosRequestConfig } from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 
 import apis from '@/client/apis';
-import { ChatCompletionsResponse, CompletionsResponse, GPTModel, OpenAIModel } from '@/types';
+import type { ChatModel, OpenAIModel } from '@/constants';
 
-let baseUrl = apis.baseUrl;
-const { endpoints } = apis;
+const { endpoints, baseUrl } = apis;
 
 const client = axios.create({ baseURL: baseUrl });
 
 export function setApiBaseUrl(url: string) {
   client.defaults.baseURL = url;
-  baseUrl = url;
-}
-
-export function useAxios(config: AxiosRequestConfig) {
-  const [data, setData] = useState<Record<string, unknown> | null>(null);
-  const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState(false);
-
-  const controllerRef = useRef(new AbortController());
-  const cancel = () => {
-    controllerRef.current.abort();
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const response = await client.request({
-          signal: controllerRef.current.signal,
-          ...config,
-        });
-
-        setData(response.data);
-      } catch (error) {
-        const { detail } = error as Record<string, string>;
-        setError(detail);
-      } finally {
-        setLoaded(true);
-      }
-    })();
-  }, [config]);
-
-  return { data, error, loaded, cancel };
 }
 
 export async function completions(
   token: string,
   prompt: string,
   query: string,
-  model: Omit<OpenAIModel, GPTModel> = 'text-davinci-003',
+  model: Omit<OpenAIModel, ChatModel> = 'text-davinci-003',
   temperature = 0,
   maxTokens = 1000,
   topP = 1,
@@ -87,7 +53,7 @@ export async function chatCompletions(
   token: string,
   prompt: string,
   query: string,
-  model: GPTModel = 'gpt-3.5-turbo',
+  model: ChatModel = 'gpt-4o-mini',
   temperature = 0,
   maxTokens = 1000,
   topP = 1,
@@ -128,7 +94,7 @@ export async function chatCompletionsStream(
     token: string;
     prompt: string;
     query: string;
-    model?: GPTModel;
+    model?: ChatModel;
     temperature?: number;
     maxTokens?: number;
     topP?: number;
@@ -141,7 +107,7 @@ export async function chatCompletionsStream(
     token,
     prompt,
     query,
-    model = 'gpt-3.5-turbo',
+    model = 'gpt-4o-mini',
     temperature = 0,
     maxTokens = 1000,
     topP = 1,
@@ -164,7 +130,8 @@ export async function chatCompletionsStream(
     stream: true,
     messages: [
       { role: 'system', content: prompt },
-      { role: 'user', content: `"${query}"` },
+      { role: 'system', content: 'Please note that your response should solely consist of the translation.' },
+      { role: 'user', content: query },
     ],
   };
   const response = await fetchEventSource(baseUrl + url, {
@@ -182,7 +149,6 @@ export async function chatCompletionsStream(
 
 export default {
   setApiBaseUrl,
-  useAxios,
   completions,
   chatCompletions,
   chatCompletionsStream,

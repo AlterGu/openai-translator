@@ -1,29 +1,61 @@
+import { useClickOutside, useLocalStorage } from '@mantine/hooks';
 import clsx from 'clsx';
-import { useEffect, useRef, useState } from 'react';
-import { Button } from 'react-daisyui';
+import { useEffect, useState } from 'react';
+import { Badge, Button } from 'react-daisyui';
 import { useTranslation } from 'react-i18next';
-import { FaLanguage, FaSortDown } from 'react-icons/fa';
-import { useLocalStorage, useOnClickOutside } from 'usehooks-ts';
-
-import { ReactComponent as EnFlag } from '@/svg/flags/en.svg';
-import { ReactComponent as HkFlag } from '@/svg/flags/hk.svg';
-import { ReactComponent as JpFlag } from '@/svg/flags/jp.svg';
+import { FaSortDown } from 'react-icons/fa';
+import { IoLanguage } from 'react-icons/io5';
 
 const LANGUAGES = [
-  { code: 'en', name: 'English', icon: <EnFlag width="20" height="20" title={'English'} /> },
-  { code: 'zh', name: '简体中文', icon: <HkFlag width="20" height="20" title={'简体中文'} /> },
-  { code: 'ja', name: '日本語', icon: <JpFlag width="20" height="20" title={'日本語'} /> },
+  {
+    code: 'en',
+    name: 'English',
+    icon: (
+      <Badge size="sm" variant="outline">
+        EN
+      </Badge>
+    ),
+  },
+  {
+    code: 'zh',
+    name: '简体中文',
+    icon: (
+      <Badge size="sm" variant="outline">
+        ZH
+      </Badge>
+    ),
+  },
+  {
+    code: 'zh-TW',
+    name: '正體中文',
+    icon: (
+      <Badge size="sm" variant="outline">
+        ZH
+      </Badge>
+    ),
+  },
+  {
+    code: 'ja',
+    name: '日本語',
+    icon: (
+      <Badge size="sm" variant="outline">
+        JA
+      </Badge>
+    ),
+  },
 ] as const;
 
 type LanguageCode = (typeof LANGUAGES)[number]['code'];
 
 export function SwitchLanguageButton() {
   const { t, i18n } = useTranslation();
-  const ref = useRef(null);
-  const [lang, setLang] = useLocalStorage<LanguageCode>('langCode', 'zh');
+  const ref = useClickOutside<HTMLDivElement>(() => setIsMenuOpen(false));
+  const [lang, setLang] = useLocalStorage<LanguageCode>({
+    key: 'langCode',
+    defaultValue: 'zh',
+    getInitialValueInEffect: false,
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useOnClickOutside(ref, () => setIsMenuOpen(false));
 
   useEffect(() => {
     document.documentElement.setAttribute('lang', lang);
@@ -47,7 +79,7 @@ export function SwitchLanguageButton() {
         className="gap-1 normal-case"
         onClick={() => setIsMenuOpen((prev) => !prev)}
       >
-        <FaLanguage size={20} />
+        <IoLanguage size={20} />
         <FaSortDown size={12} />
       </Button>
       <div className="w-56 mt-16 overflow-y-auto shadow-2xl dropdown-content bg-base-200 text-base-content rounded-t-box rounded-b-box top-px">
