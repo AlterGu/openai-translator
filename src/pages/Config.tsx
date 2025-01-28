@@ -5,13 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { FaTimes } from 'react-icons/fa';
 
 import { useGlobalStore } from '@/components/GlobalStore';
-import { OPENAI_MODELS_TITLES } from '@/constants';
-import { OpenAIModel } from '@/types';
+import { OPENAI_MODELS_TITLES, type OpenAIModel } from '@/constants';
 
 function ConfigPage() {
   const { t } = useTranslation();
   const {
-    configValues: { openaiApiUrl, openaiApiKey, streamEnabled, currentModel, tempretureParam },
+    configValues: { openaiApiUrl, openaiApiKey, streamEnabled, currentModel, temperatureParam },
     setConfigValues,
   } = useGlobalStore();
   const openaiApiInputRef = useRef<HTMLInputElement>(null);
@@ -20,7 +19,7 @@ function ConfigPage() {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const formData = new FormData(event.currentTarget);
-      const { openaiApiUrl, openaiApiKey, streamEnabled, selectedModel, tempretureParam } = Object.fromEntries(
+      const { openaiApiUrl, openaiApiKey, streamEnabled, selectedModel, temperatureParam } = Object.fromEntries(
         formData.entries(),
       );
       if (!openaiApiUrl) {
@@ -41,7 +40,7 @@ function ConfigPage() {
         openaiApiKey: `${openaiApiKey}`,
         streamEnabled: streamEnabled === 'on',
         currentModel: selectedModel as OpenAIModel,
-        tempretureParam: +tempretureParam,
+        temperatureParam: +temperatureParam,
       }));
       toast.success(t('Config Saved!'));
     },
@@ -64,7 +63,7 @@ function ConfigPage() {
   );
 
   return (
-    <div className="p-4 w-[28.75rem] max-w-[100vw] bg-base-100 overflow-y-auto overflow-x-hidden h-full">
+    <div className="p-6 w-[28.75rem] max-w-[100vw] bg-base-100 overflow-y-auto overflow-x-hidden h-full">
       <h1 className="sticky top-0 z-50 flex justify-between w-full text-2xl font-bold align-middle bg-base-100">
         <span className="leading-[48px]">{t('Config')}</span>
         <label
@@ -96,7 +95,7 @@ function ConfigPage() {
             name="openaiApiUrl"
             color="primary"
             className="break-all"
-            placeholder={t('Plsase input OpenAI API Url here.')}
+            placeholder={t('Please input OpenAI API Url here.')}
             defaultValue={openaiApiUrl}
             required
           />
@@ -118,7 +117,7 @@ function ConfigPage() {
           <textarea
             name="openaiApiKey"
             className="h-24 break-all resize-none rounded-2xl textarea textarea-md textarea-primary"
-            placeholder={t('Plsase paste your OpenAI API Key here.')}
+            placeholder={t('Please paste your OpenAI API Key here.')}
             defaultValue={openaiApiKey}
             required
           ></textarea>
@@ -142,15 +141,15 @@ function ConfigPage() {
         </div>
         <div className="mb-4 form-control">
           <label className="label">
-            <span className="text-lg font-bold label-text">{t('Tempreture')}</span>
-            <span className="label-text-alt">{t('Higher tempreture will be more creative.')}</span>
+            <span className="text-lg font-bold label-text">{t('Temperature')}</span>
+            <span className="label-text-alt">{t('Higher temperature will be more creative.')}</span>
           </label>
           <input
             type="range"
-            name="tempretureParam"
+            name="temperatureParam"
             min="0.4"
             max="1.0"
-            defaultValue={tempretureParam}
+            defaultValue={temperatureParam}
             className="range range-primary"
             step="0.1"
           />

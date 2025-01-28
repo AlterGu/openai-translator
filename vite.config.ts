@@ -6,11 +6,15 @@ import { ConfigEnv, loadEnv, UserConfig } from 'vite';
 import { ManifestOptions, VitePWA, VitePWAOptions } from 'vite-plugin-pwa';
 import svgr from 'vite-plugin-svgr';
 
+const ReactCompilerConfig = {
+  target: '19',
+};
+
 const pwaOptions: Partial<VitePWAOptions | ManifestOptions> = {
   registerType: 'autoUpdate',
   categories: ['education', 'utilities'],
   description:
-    'A translator app that uses OpenAI GPT-3 to translate between languages. It is a PWA that can be installed on your phone or desktop.',
+    'A translator app built using OpenAI GPT model to translate between languages. It is a PWA that can be installed on your phone or desktop.',
   manifest: {
     short_name: 'OpenAI Translator',
     name: 'OpenAI Translator',
@@ -40,8 +44,8 @@ const pwaOptions: Partial<VitePWAOptions | ManifestOptions> = {
       },
     ],
     start_url: '/',
-    theme_color: '#047AFF',
-    background_color: '#047AFF',
+    theme_color: '#ffffff',
+    background_color: '#ffffff',
   },
   includeAssets: ['openai-translator-apple-touch-icon.png', 'favicon.png', 'locales/**/*.json', 'icons/*.{png,svg}'],
 };
@@ -65,11 +69,22 @@ export default async function ({ command, mode }: ConfigEnv): Promise<UserConfig
       outDir: '../dist',
       emptyOutDir: true,
     },
-    plugins: [react(), svgr(), VitePWA(pwaOptions)],
+    plugins: [
+      react({
+        babel: {
+          plugins: [['babel-plugin-react-compiler', ReactCompilerConfig]],
+        },
+      }),
+      svgr(),
+      VitePWA(pwaOptions),
+    ],
     resolve: {
       alias: {
         '@/': `${__dirname}/src/`,
       },
+    },
+    define: {
+      BUILD_TIME: JSON.stringify(new Date().toISOString()),
     },
     assetsInclude: ['favicon.png', 'openai-translator-apple-touch-icon.png', 'locales/**/*.json', 'icons/*.{png,svg}'],
   };

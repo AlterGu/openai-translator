@@ -1,10 +1,10 @@
+import { useLocalStorage } from '@mantine/hooks';
 import { createContext, Dispatch, SetStateAction, useContext, useEffect, useMemo, useState } from 'react';
-import { useLocalStorage } from 'usehooks-ts';
 
 import { setApiBaseUrl } from '@/client';
 import { fetchTranslation } from '@/client/fetcher';
+import { type ConfigValues } from '@/constants';
 import { useQueryApi } from '@/hooks/useQueryApi';
-import { ConfigValues, HistoryRecord, LastTranslateData } from '@/types';
 
 type GlobalContextValue = {
   configValues: ConfigValues;
@@ -15,7 +15,7 @@ type GlobalContextValue = {
     translateText: string;
     setTranslateText: Dispatch<SetStateAction<string>>;
     translatedText: string | undefined;
-    mutateTanslateText: (data: Parameters<typeof fetchTranslation>[0]) => void;
+    mutateTranslateText: (data: Parameters<typeof fetchTranslation>[0]) => void;
     isTranslating: boolean;
     isTranslateError: boolean;
   };
@@ -25,13 +25,13 @@ type GlobalContextValue = {
   };
 };
 
-const GlobalContext = createContext<GlobalContextValue>({
+const context = createContext<GlobalContextValue>({
   configValues: {
     openaiApiUrl: 'https://api.openai.com',
     openaiApiKey: '',
     streamEnabled: true,
-    currentModel: 'gpt-3.5-turbo',
-    tempretureParam: 0.7,
+    currentModel: 'gpt-4o-mini',
+    temperatureParam: 0.7,
   },
   setConfigValues: () => undefined,
   translator: {
@@ -43,7 +43,7 @@ const GlobalContext = createContext<GlobalContextValue>({
     translateText: '',
     setTranslateText: () => undefined,
     translatedText: undefined,
-    mutateTanslateText: () => undefined,
+    mutateTranslateText: () => undefined,
     isTranslating: false,
     isTranslateError: false,
   },
@@ -60,29 +60,41 @@ type Props = {
 export function GlobalProvider(props: Props) {
   const { children } = props;
   const [translateText, setTranslateText] = useState('');
-  const [historyRecords, setHistoryRecords] = useLocalStorage<HistoryRecord[]>('history-record', []);
-  const [lastTranslateData, setLastTranslateData] = useLocalStorage<LastTranslateData>('last-translate-data', {
-    fromLang: 'auto',
-    toLang: 'auto',
+  const [historyRecords, setHistoryRecords] = useLocalStorage<HistoryRecord[]>({
+    key: 'history-record',
+    defaultValue: [],
+    getInitialValueInEffect: false,
   });
-  const [configValues, setConfigValues] = useLocalStorage<ConfigValues>('extra-config', {
-    openaiApiUrl: 'https://api.openai.com',
-    openaiApiKey: '',
-    streamEnabled: true,
-    currentModel: 'gpt-3.5-turbo',
-    tempretureParam: 0.7,
+  const [lastTranslateData, setLastTranslateData] = useLocalStorage<LastTranslateData>({
+    key: 'last-translate-data',
+    defaultValue: {
+      fromLang: 'auto',
+      toLang: 'auto',
+    },
+    getInitialValueInEffect: false,
+  });
+  const [configValues, setConfigValues] = useLocalStorage<ConfigValues>({
+    key: 'extra-config',
+    defaultValue: {
+      openaiApiUrl: 'https://api.openai.com',
+      openaiApiKey: '',
+      streamEnabled: true,
+      currentModel: 'gpt-4o-mini',
+      temperatureParam: 0.7,
+    },
+    getInitialValueInEffect: false,
   });
   const {
     openaiApiUrl = 'https://api.openai.com',
     openaiApiKey = '',
     streamEnabled = true,
-    currentModel = 'gpt-3.5-turbo',
-    tempretureParam = 0.7,
+    currentModel = 'gpt-4o-mini',
+    temperatureParam = 0.7,
   } = configValues;
 
   const {
     data: translatedText,
-    mutate: mutateTanslateText,
+    mutate: mutateTranslateText,
     isLoading: isTranslating,
     isError: isTranslateError,
   } = useQueryApi(streamEnabled);
@@ -105,12 +117,13 @@ export function GlobalProvider(props: Props) {
       ...prev,
     ]);
     // Don't need to catch translateText, lastTranslateData.fromLang, lastTranslateData.toLang
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [translatedText, isTranslating, setHistoryRecords]);
 
   const contextValue = useMemo(
     () => ({
-      configValues: { openaiApiUrl, openaiApiKey, streamEnabled, currentModel, tempretureParam },
+      configValues: { openaiApiUrl, openaiApiKey, streamEnabled, currentModel, temperatureParam },
       setConfigValues,
       translator: {
         lastTranslateData,
@@ -118,7 +131,7 @@ export function GlobalProvider(props: Props) {
         translateText,
         setTranslateText,
         translatedText,
-        mutateTanslateText,
+        mutateTranslateText,
         isTranslating,
         isTranslateError,
       },
@@ -132,13 +145,13 @@ export function GlobalProvider(props: Props) {
       openaiApiKey,
       streamEnabled,
       currentModel,
-      tempretureParam,
+      temperatureParam,
       setConfigValues,
       lastTranslateData,
       setLastTranslateData,
       translateText,
       translatedText,
-      mutateTanslateText,
+      mutateTranslateText,
       isTranslating,
       isTranslateError,
       historyRecords,
@@ -146,9 +159,13 @@ export function GlobalProvider(props: Props) {
     ],
   );
 
-  return <GlobalContext.Provider value={contextValue}>{children}</GlobalContext.Provider>;
+  return <context.Provider value={contextValue}>{children}</context.Provider>;
 }
 
 export function useGlobalStore() {
-  return useContext(GlobalContext);
+  const value = useContext(context);
+  if (!value) {
+    throw new Error('useGlobalStore must be used within a GlobalProvider');
+  }
+  return value;
 }

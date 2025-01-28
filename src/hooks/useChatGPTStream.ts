@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
 
 import OpenAIClient from '@/client';
-import { GPT_MODELS, GPTModel } from '@/constants';
-import { ChatCompletionsResponse, OpenAIModel } from '@/types';
+import { CHAT_MODELS, type ChatModel, type OpenAIModel } from '@/constants';
 
 function getRadomNumber(min: number, max: number) {
   return Math.random() * (max - min) + min;
@@ -14,8 +13,8 @@ export function useChatGPTStream() {
   const [loading, setLoading] = useState(false);
 
   const mutate = useCallback(
-    (params: { token: string; engine: OpenAIModel; prompt: string; tempretureParam: number; queryText: string }) => {
-      const { token, engine, prompt, queryText, tempretureParam } = params;
+    (params: { token: string; engine: OpenAIModel; prompt: string; temperatureParam: number; queryText: string }) => {
+      const { token, engine, prompt, queryText, temperatureParam } = params;
       if (loading) {
         console.warn('Already loading!');
         return;
@@ -33,16 +32,17 @@ export function useChatGPTStream() {
         return;
       }
 
-      const tmpParam = +tempretureParam > 0.4 && +tempretureParam <= 1.0 ? +tempretureParam : getRadomNumber(0.5, 1.0);
+      const tmpParam =
+        +temperatureParam > 0.4 && +temperatureParam <= 1.0 ? +temperatureParam : getRadomNumber(0.5, 1.0);
 
-      const isGptModel = GPT_MODELS.includes(engine as GPTModel);
+      const isChatModel = CHAT_MODELS.includes(engine as ChatModel);
 
       OpenAIClient.chatCompletionsStream(
         {
           token,
           prompt,
           query: queryText,
-          model: isGptModel ? (engine as GPTModel) : 'gpt-3.5-turbo',
+          model: isChatModel ? (engine as ChatModel) : 'gpt-4o-mini',
           temperature: tmpParam,
         },
         {
@@ -65,14 +65,7 @@ export function useChatGPTStream() {
               return;
             }
             const parsedData = JSON.parse(event.data) as ChatCompletionsResponse;
-            const text = parsedData.choices
-              .map((choice) => {
-                if (choice.delta) {
-                  return choice.delta.content;
-                }
-                return '';
-              })
-              .join('');
+            const text = parsedData.choices.map((choice) => choice.delta?.content || '').join('');
             setData((prev) => prev + text);
           },
           onclose() {
