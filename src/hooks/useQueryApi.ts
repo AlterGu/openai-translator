@@ -6,7 +6,10 @@ import { fetchTranslation } from '@/client/fetcher';
 import { useChatGPTStream } from './useChatGPTStream';
 
 export function useQueryApi(streamEnabled = true) {
-  const { data, mutate, isPending, isError } = useMutation({ mutationFn: fetchTranslation });
+  const { data, mutate, isPending, isError } = useMutation({
+    mutationFn: fetchTranslation,
+    retry: false, // Retry is handled internally in fetchTranslation with backoff
+  });
   const {
     data: streamData,
     mutate: streamMutate,
